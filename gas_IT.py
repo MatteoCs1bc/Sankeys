@@ -1,96 +1,107 @@
-import streamlit as st
+import os
+
+out_dir = "/tmp/user_code_sankey_3"
+os.makedirs(out_dir, exist_ok=True)
+file_path = os.path.join(out_dir, "gas_IT_v3.py")
+
+code = """import streamlit as st
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Flussi Gas Italia", layout="wide")
 st.title("Evoluzione dell'approvvigionamento di Gas in Italia (2020 vs 2025)")
-st.markdown("Rappresentazione del peso percentuale delle fonti sul totale delle importazioni.")
+st.markdown("Valori in **Miliardi di metri cubi (Gmc)** e peso percentuale. Il nodo centrale mostra la transizione e il calo della domanda.")
 
 # ----------------------------------------------------
 # 1. Definizione delle etichette (Nodi)
 # ----------------------------------------------------
 label = [
-    # Nodi 2020 (0-5)
-    "Russia (43.4%)", 
-    "Algeria (18.5%)", 
-    "GNL via Nave (USA, Qatar, Algeria) (20.0%)", 
-    "Nord Europa (11.5%)", 
-    "Libia (6.7%)", 
-    "Azerbaigian (0%)",
+    # Nodi 2020 (0-4)
+    "Russia (28.4 Gmc | 43.4%)", 
+    "Algeria (12.1 Gmc | 18.5%)", 
+    "GNL (USA, Qatar, Algeria) (13.1 Gmc | 20.0%)", 
+    "Nord Europa (7.5 Gmc | 11.5%)", 
+    "Libia (4.4 Gmc | 6.7%)", 
     
-    # Nodi 2025 (6-11)
-    "Russia (1.3%)", 
-    "Algeria (32.8%)", 
-    "GNL via Nave (USA, Qatar, Algeria) (34.1%)", 
-    "Nord Europa (14.0%)", 
-    "Libia (1.5%)", 
-    "Azerbaigian (16.3%)",
+    # Nodi Centrali (5, 6, 7)
+    "Import Italia 2020 (65.5 Gmc)", 
+    "Calo Import (-4.2 Gmc)", 
+    "Import Italia 2025 (61.3 Gmc)", 
     
-    # Nodi INVISIBILI per bilanciare la matematica senza sporcare il grafico (12, 13)
-    " ", " "
+    # Nodi 2025 (8-13)
+    "Russia (0.8 Gmc | 1.3%)", 
+    "Algeria (20.1 Gmc | 32.8%)", 
+    "GNL (USA, Qatar, Algeria) (20.9 Gmc | 34.1%)", 
+    "Nord Europa (8.6 Gmc | 14.0%)", 
+    "Libia (0.9 Gmc | 1.5%)", 
+    "Azerbaigian (10.0 Gmc | 16.3%)"
 ]
 
 # ----------------------------------------------------
-# 2. Logica dei flussi e "Trucco" della Trasparenza
+# 2. Logica dei flussi
 # ----------------------------------------------------
-source = []
-target = []
-value = []
-link_colors = []
-
-vals_2020 = [43.4, 18.5, 20.0, 11.5, 6.7, 0.1]
-vals_2025 = [1.3, 32.8, 34.1, 14.0, 1.5, 16.3]
-
-base_colors = [
-    "rgba(214, 39, 40, 0.6)",   # Russia (Rosso)
-    "rgba(44, 160, 44, 0.6)",   # Algeria (Verde)
-    "rgba(148, 103, 189, 0.6)", # GNL (Viola)
-    "rgba(227, 119, 194, 0.6)", # Nord Europa (Rosa)
-    "rgba(140, 86, 75, 0.6)",   # Libia (Marrone)
-    "rgba(23, 190, 207, 0.6)"   # Azerbaigian (Ciano)
+source = [
+    0, 1, 2, 3, 4,    # Da: Paesi 2020 -> Italia 2020
+    5,                # Da: Italia 2020 -> Calo Import
+    5,                # Da: Italia 2020 -> Italia 2025
+    7, 7, 7, 7, 7, 7  # Da: Italia 2025 -> Paesi 2025
 ]
 
-for i in range(6):
-    min_val = min(vals_2020[i], vals_2025[i])
-    
-    # Flusso visibile Paese-Paese
-    source.append(i)
-    target.append(i+6)
-    value.append(min_val)
-    link_colors.append(base_colors[i])
-    
-    # Flussi invisibili per bilanciare le percentuali
-    if vals_2020[i] > vals_2025[i]:
-        source.append(i)
-        target.append(13)
-        value.append(vals_2020[i] - min_val)
-        link_colors.append("rgba(0,0,0,0)") # 100% Trasparente
-    elif vals_2025[i] > vals_2020[i]:
-        source.append(12)
-        target.append(i+6)
-        value.append(vals_2025[i] - min_val)
-        link_colors.append("rgba(0,0,0,0)") # 100% Trasparente
+target = [
+    5, 5, 5, 5, 5,    # A: Italia 2020
+    6,                # A: Calo Import
+    7,                # A: Italia 2025
+    8, 9, 10, 11, 12, 13 # A: Paesi 2025
+]
+
+value = [
+    28.4, 12.1, 13.1, 7.5, 4.4, # Volumi in ingresso 2020
+    4.2,                        # Volume del calo
+    61.3,                       # Volume trasferito al 2025
+    0.8, 20.1, 20.9, 8.6, 0.9, 10.0 # Volumi in uscita verso il mix 2025
+]
 
 # ----------------------------------------------------
-# 3. Colori dei Nodi
+# 3. Colori 
 # ----------------------------------------------------
 node_colors = [
-    "#d62728", "#2ca02c", "#9467bd", "#e377c2", "#8c564b", "#17becf", # Sinistra
-    "#d62728", "#2ca02c", "#9467bd", "#e377c2", "#8c564b", "#17becf", # Destra
-    "rgba(0,0,0,0)", "rgba(0,0,0,0)" # Nodi invisibili
+    # Colori 2020
+    "#d62728", "#2ca02c", "#9467bd", "#e377c2", "#8c564b",
+    # Colori Centrali (Blu Italia, Grigio Calo, Blu Italia)
+    "#1f77b4", "#7f7f7f", "#1f77b4",
+    # Colori 2025
+    "#d62728", "#2ca02c", "#9467bd", "#e377c2", "#8c564b", "#17becf"
 ]
 
-node_line_colors = ["black"] * 12 + ["rgba(0,0,0,0)", "rgba(0,0,0,0)"]
-node_line_widths = [0.5] * 12 + [0, 0]
+link_colors = [
+    # Ingressi 2020
+    "rgba(214, 39, 40, 0.4)",   
+    "rgba(44, 160, 44, 0.4)",   
+    "rgba(148, 103, 189, 0.4)", 
+    "rgba(227, 119, 194, 0.4)", 
+    "rgba(140, 86, 75, 0.4)",   
+    
+    # Transizione Centrale
+    "rgba(150, 150, 150, 0.5)", # Calo Import
+    "rgba(31, 119, 180, 0.3)",  # Passaggio da 2020 a 2025
+    
+    # Uscite verso 2025
+    "rgba(214, 39, 40, 0.4)",   
+    "rgba(44, 160, 44, 0.4)",   
+    "rgba(148, 103, 189, 0.4)", 
+    "rgba(227, 119, 194, 0.4)", 
+    "rgba(140, 86, 75, 0.4)",   
+    "rgba(23, 190, 207, 0.4)"   
+]
 
 # ----------------------------------------------------
 # 4. Creazione Grafico
 # ----------------------------------------------------
 fig = go.Figure(data=[go.Sankey(
-    arrangement="perpendicular",
+    arrangement="snap",
     node = dict(
-      pad = 25,
+      pad = 20,
       thickness = 35,
-      line = dict(color = node_line_colors, width = node_line_widths),
+      line = dict(color = "black", width = 0.5),
       label = label,
       color = node_colors
     ),
@@ -107,7 +118,10 @@ fig.update_layout(
     font=dict(size=14)
 )
 
-fig.add_annotation(x=0.0, y=1.05, text="<b>Import 2020</b>", showarrow=False, font=dict(size=18), xref="paper", yref="paper")
-fig.add_annotation(x=1.0, y=1.05, text="<b>Import 2025</b>", showarrow=False, font=dict(size=18), xref="paper", yref="paper")
-
 st.plotly_chart(fig, use_container_width=True)
+"""
+
+with open(file_path, "w") as f:
+    f.write(code)
+
+print(f"File generato con successo: {file_path}")
