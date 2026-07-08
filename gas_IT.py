@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Flussi Gas Italia", layout="wide")
 st.title("Evoluzione dell'approvvigionamento di Gas in Italia (2020 vs 2025)")
-st.markdown("Valori in **Miliardi di metri cubi (Gmc)** e peso percentuale. Il nodo centrale rappresenta il sistema Italia.")
+st.markdown("Valori in **Miliardi di metri cubi (Gmc)** e peso percentuale.")
 
 # ----------------------------------------------------
 # 1. Definizione delle etichette (Nodi)
@@ -16,7 +16,7 @@ label = [
     "Nord Europa (7.5 Gmc | 11.5%)", 
     "Libia (4.4 Gmc | 6.7%)", 
     
-    # Nodi Centrali (5, 6) - UN SOLO NODO CENTRALE ITALIA + CALO
+    # Nodi Centrali (5, 6)
     "Sistema Gas Italia", 
     "Calo Import (-4.2 Gmc)", 
     
@@ -30,7 +30,26 @@ label = [
 ]
 
 # ----------------------------------------------------
-# 2. Logica dei flussi
+# 2. Forzatura delle Coordinate (X e Y) per mantenere l'ordine
+# ----------------------------------------------------
+# Usando x e y possiamo dire a Plotly ESATTAMENTE dove piazzare i blocchi,
+# in modo che Russia sia sempre in alto e l'ordine rimanga identico.
+x_pos = [
+    0.01, 0.01, 0.01, 0.01, 0.01,  # 0-4: Sinistra (2020)
+    0.5,                           # 5: Sistema Italia (Centro)
+    0.5,                           # 6: Calo Import (Centro)
+    0.99, 0.99, 0.99, 0.99, 0.99, 0.99 # 7-12: Destra (2025)
+]
+
+y_pos = [
+    0.15, 0.35, 0.55, 0.75, 0.90,  # 0-4: Paesi 2020 in ordine
+    0.01,                          # 5: Sistema Italia FORZATO IN ALTO (Sopra)
+    0.99,                          # 6: Calo Import FORZATO IN BASSO (Sotto)
+    0.15, 0.35, 0.55, 0.75, 0.90, 0.99 # 7-12: Paesi 2025 nello stesso ordine
+]
+
+# ----------------------------------------------------
+# 3. Logica dei flussi
 # ----------------------------------------------------
 source = [
     0, 1, 2, 3, 4,    # Da: Paesi 2020 -> Italia
@@ -51,7 +70,7 @@ value = [
 ]
 
 # ----------------------------------------------------
-# 3. Colori 
+# 4. Colori 
 # ----------------------------------------------------
 node_colors = [
     # Colori 2020
@@ -73,7 +92,7 @@ link_colors = [
     # Uscite verso Calo
     "rgba(150, 150, 150, 0.5)",
     
-    # Uscite verso 2025 (riprendono i colori dei paesi di destinazione)
+    # Uscite verso 2025
     "rgba(214, 39, 40, 0.4)",   
     "rgba(44, 160, 44, 0.4)",   
     "rgba(148, 103, 189, 0.4)", 
@@ -83,16 +102,18 @@ link_colors = [
 ]
 
 # ----------------------------------------------------
-# 4. Creazione Grafico
+# 5. Creazione Grafico
 # ----------------------------------------------------
 fig = go.Figure(data=[go.Sankey(
-    arrangement="snap",
+    arrangement="freeform", # Permette il posizionamento manuale
     node = dict(
       pad = 20,
       thickness = 35,
       line = dict(color = "black", width = 0.5),
       label = label,
-      color = node_colors
+      color = node_colors,
+      x = x_pos,
+      y = y_pos
     ),
     link = dict(
       source = source,
@@ -102,7 +123,7 @@ fig = go.Figure(data=[go.Sankey(
   ))])
 
 fig.update_layout(
-    height=750, 
+    height=800, 
     margin=dict(t=50, b=50, l=20, r=20),
     font=dict(size=14)
 )
