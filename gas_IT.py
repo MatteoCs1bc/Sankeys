@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Flussi Gas Italia", layout="wide")
 st.title("Evoluzione dell'approvvigionamento di Gas in Italia (2020 vs 2025)")
-st.markdown("Valori in **Miliardi di metri cubi (Gmc)** e peso percentuale. Il nodo centrale mostra la transizione e il calo della domanda.")
+st.markdown("Valori in **Miliardi di metri cubi (Gmc)** e peso percentuale. Il nodo centrale rappresenta il sistema Italia.")
 
 # ----------------------------------------------------
 # 1. Definizione delle etichette (Nodi)
@@ -16,12 +16,11 @@ label = [
     "Nord Europa (7.5 Gmc | 11.5%)", 
     "Libia (4.4 Gmc | 6.7%)", 
     
-    # Nodi Centrali (5, 6, 7)
-    "Import Italia 2020 (65.5 Gmc)", 
+    # Nodi Centrali (5, 6) - UN SOLO NODO CENTRALE ITALIA + CALO
+    "Sistema Gas Italia", 
     "Calo Import (-4.2 Gmc)", 
-    "Import Italia 2025 (61.3 Gmc)", 
     
-    # Nodi 2025 (8-13)
+    # Nodi 2025 (7-12)
     "Russia (0.8 Gmc | 1.3%)", 
     "Algeria (20.1 Gmc | 32.8%)", 
     "GNL (USA, Qatar, Algeria) (20.9 Gmc | 34.1%)", 
@@ -34,23 +33,20 @@ label = [
 # 2. Logica dei flussi
 # ----------------------------------------------------
 source = [
-    0, 1, 2, 3, 4,    # Da: Paesi 2020 -> Italia 2020
-    5,                # Da: Italia 2020 -> Calo Import
-    5,                # Da: Italia 2020 -> Italia 2025
-    7, 7, 7, 7, 7, 7  # Da: Italia 2025 -> Paesi 2025
+    0, 1, 2, 3, 4,    # Da: Paesi 2020 -> Italia
+    5,                # Da: Italia -> Calo Import
+    5, 5, 5, 5, 5, 5  # Da: Italia -> Paesi 2025
 ]
 
 target = [
-    5, 5, 5, 5, 5,    # A: Italia 2020
+    5, 5, 5, 5, 5,    # A: Italia Centrale
     6,                # A: Calo Import
-    7,                # A: Italia 2025
-    8, 9, 10, 11, 12, 13 # A: Paesi 2025
+    7, 8, 9, 10, 11, 12 # A: Paesi 2025
 ]
 
 value = [
     28.4, 12.1, 13.1, 7.5, 4.4, # Volumi in ingresso 2020
     4.2,                        # Volume del calo
-    61.3,                       # Volume trasferito al 2025
     0.8, 20.1, 20.9, 8.6, 0.9, 10.0 # Volumi in uscita verso il mix 2025
 ]
 
@@ -60,8 +56,8 @@ value = [
 node_colors = [
     # Colori 2020
     "#d62728", "#2ca02c", "#9467bd", "#e377c2", "#8c564b",
-    # Colori Centrali (Blu Italia, Grigio Calo, Blu Italia)
-    "#1f77b4", "#7f7f7f", "#1f77b4",
+    # Colori Centrali
+    "#1f77b4", "#7f7f7f",
     # Colori 2025
     "#d62728", "#2ca02c", "#9467bd", "#e377c2", "#8c564b", "#17becf"
 ]
@@ -74,11 +70,10 @@ link_colors = [
     "rgba(227, 119, 194, 0.4)", 
     "rgba(140, 86, 75, 0.4)",   
     
-    # Transizione Centrale
-    "rgba(150, 150, 150, 0.5)", # Calo Import
-    "rgba(31, 119, 180, 0.3)",  # Passaggio da 2020 a 2025
+    # Uscite verso Calo
+    "rgba(150, 150, 150, 0.5)",
     
-    # Uscite verso 2025
+    # Uscite verso 2025 (riprendono i colori dei paesi di destinazione)
     "rgba(214, 39, 40, 0.4)",   
     "rgba(44, 160, 44, 0.4)",   
     "rgba(148, 103, 189, 0.4)", 
