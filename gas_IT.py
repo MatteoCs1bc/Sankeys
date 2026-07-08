@@ -1,10 +1,3 @@
-import os
-
-out_dir = "/tmp/user_code_sankey_3"
-os.makedirs(out_dir, exist_ok=True)
-file_path = os.path.join(out_dir, "gas_IT_v3.py")
-
-code = """import streamlit as st
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Flussi Gas Italia", layout="wide")
