@@ -112,9 +112,3 @@ fig.update_layout(
 )
 
 st.plotly_chart(fig, use_container_width=True)
-"""
-
-with open(file_path, "w") as f:
-    f.write(code)
-
-print(f"File generato con successo: {file_path}")
