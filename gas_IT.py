@@ -1,5 +1,16 @@
+import streamlit as st
 import plotly.graph_objects as go
 
+# ----------------------------------------------------
+# 1. Configurazione della pagina Streamlit (Opzionale)
+# ----------------------------------------------------
+st.set_page_config(page_title="Flussi Gas Italia", layout="wide")
+
+st.title("Diagramma Flussi Gas Italia")
+
+# ----------------------------------------------------
+# 2. Il tuo codice Plotly
+# ----------------------------------------------------
 # Definizione dei nodi del grafico
 label = [
     "Import 2020", "Import 2025",                  # 0, 1 (Sorgenti)
@@ -29,4 +40,8 @@ fig = go.Figure(data=[go.Sankey(
   ))])
 
 fig.update_layout(title_text="Variazione Flussi Gas Italia: 2020 vs 2025 (Gmc)", font_size=12)
-fig.show()
+
+# ----------------------------------------------------
+# 3. Il comando MAGICO per Streamlit
+# ----------------------------------------------------
+st.plotly_chart(fig, use_container_width=True)
