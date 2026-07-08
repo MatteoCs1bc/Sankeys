@@ -1,3 +1,4 @@
+import streamlit as st
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Flussi Gas Italia", layout="wide")
